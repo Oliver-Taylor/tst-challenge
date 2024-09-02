@@ -108,4 +108,17 @@ class CruisePromotionServiceSuite extends FunSuite {
 
     assertEquals(CruisePromotionService.combinablePromotions("P3", promotions), output)
   }
+
+  test("CruisePromotionService#combinablePromotion should return a empty Seq if code is not present") {
+    val promotions =
+      List(
+        Promotion.of("P1", "P3"),
+        Promotion.of("P2", "P4", "P5"),
+        Promotion.of("P3", "P1"),
+        Promotion.of("P4", "P2"),
+        Promotion.of("P5", "P2")
+      )
+
+    assertEquals(CruisePromotionService.combinablePromotions("P10", promotions), List.empty)
+  }
 }

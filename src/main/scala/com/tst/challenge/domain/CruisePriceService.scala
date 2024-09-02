@@ -1,6 +1,5 @@
 package com.tst.challenge.domain
 
-import cats.syntax.show._
 import cats.syntax.foldable._
 import cats.effect.{IO, IOApp}
 import com.tst.challenge.model.{BestGroupPrice, CabinPrice, Rate}

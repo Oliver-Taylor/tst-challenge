@@ -1,5 +1,7 @@
 package com.tst.challenge.domain
 
+import cats.Eval
+import cats.syntax.foldable._
 import cats.effect.{IO, IOApp}
 import com.tst.challenge.model.{Promotion, PromotionCombo}
 
@@ -10,29 +12,41 @@ object CruisePromotionService extends IOApp.Simple {
     *
     * - The order of the output promotion combos do not matter
     * - The number of promotions are not expected to be large (currently the solution is roughly O(2^n))
+    * - There is enough memory to store all valid combinations
     */
   def allCombinablePromotions(allPromotions: Seq[Promotion]): Seq[PromotionCombo] = {
     val codes = allPromotions.map(_.code).toSet
 
-    // Built up a lookup of all allowable promotions for each promotion
-    val allAllowable = allPromotions.map(p => p.code -> ((codes - p.code) -- p.notCombinableWith)).toMap
+    // Build up a lookup of all allowable promotions for each promotion
+    val allAllowable    = allPromotions.map(p => p.code -> ((codes - p.code) -- p.notCombinableWith)).toMap
+    val allNonAllowable = allPromotions.map(p => p.code -> p.notCombinableWith).toMap
 
     // Cache previously calculated results in the valid combinations recursion
     val memoize = collection.mutable.Map.empty[(Set[String], Seq[String]), Set[Seq[String]]]
 
+    // Recursively build up all valid combinations of promotions for a given code
     def validCombinations(remaining: Set[String], current: Seq[String]): Set[Seq[String]] =
+      // return pre-computed results
       if (memoize.contains((remaining, current))) memoize((remaining, current))
+      // avoid returning a single promotion code
       else if (remaining.isEmpty && current.size > 1) Set(current.sorted)
+      // we have reached the end of the list of promotions and have not found a valid combination
       else if (remaining.isEmpty) Set.empty
       else {
-        val head  = remaining.head
-        val tail  = remaining.tail
-        val valid = (allAllowable(head) + head) -- current
+        val head           = remaining.head
+        val tail           = remaining.tail
+        val nextPromotions = (allAllowable(head) + head) -- current
 
-        val result = valid.flatMap { next =>
-          val notAllowed = current.flatMap(code => codes -- allAllowable(code)).toSet
-          if (notAllowed.contains(next)) validCombinations(tail, current)
-          else validCombinations(tail, next +: current)
+        val notAllowed = current.flatMap(allNonAllowable).toSet
+
+        val result = nextPromotions.flatMap { next =>
+          if (notAllowed.contains(next)) {
+            // Move onto the next element without including the invalid code
+            validCombinations(tail, current)
+          } else {
+            // Move onto the next element and include the valid code in the results
+            validCombinations(tail, next +: current)
+          }
         }
 
         memoize((remaining, current)) = result
@@ -71,11 +85,11 @@ object CruisePromotionService extends IOApp.Simple {
 
     for {
       _ <- IO(println("All combinable promotions:"))
-      _ <- IO(allCombinablePromotions(promotions).foreach(println))
+      _ <- IO(println(allCombinablePromotions(promotions).mkString_("\n")))
       _ <- IO(println("Combinable promotions for P1:"))
-      _ <- IO(combinablePromotions("P1", promotions).foreach(println))
+      _ <- IO(println(combinablePromotions("P1", promotions).mkString_("\n")))
       _ <- IO(println("Combinable promotions for P3:"))
-      _ <- IO(combinablePromotions("P3", promotions).foreach(println))
+      _ <- IO(println(combinablePromotions("P3", promotions).mkString_("\n")))
     } yield {}
 
   }
