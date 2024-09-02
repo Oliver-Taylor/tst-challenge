@@ -36,7 +36,7 @@ class CruisePromotionServiceSuite extends FunSuite {
     assertEquals(CruisePromotionService.allCombinablePromotions(promotions), output)
   }
 
-  test("CruisePromotionService#allCombinablePromotions should generate the maxmimum subset of combinable promotions") {
+  test("CruisePromotionService#allCombinablePromotions should generate the maximum subset of combinable promotions") {
     val promotions =
       List(
         Promotion.of("P1", "P3"),
