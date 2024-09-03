@@ -64,10 +64,10 @@ class CruisePromotionServiceSuite extends FunSuite {
       )
 
     val output = List(
-      PromotionCombo.of("P3", "P4", "P5"),
+      PromotionCombo.of("P1", "P2"),
       PromotionCombo.of("P2", "P3"),
       PromotionCombo.of("P1", "P4", "P5"),
-      PromotionCombo.of("P1", "P2"),
+      PromotionCombo.of("P3", "P4", "P5"),
     )
 
     assertEquals(CruisePromotionService.allCombinablePromotions(promotions), output)
@@ -84,8 +84,8 @@ class CruisePromotionServiceSuite extends FunSuite {
       )
 
     val output = List(
-      PromotionCombo.of("P1", "P4", "P5"),
       PromotionCombo.of("P1", "P2"),
+      PromotionCombo.of("P1", "P4", "P5"),
     )
 
     assertEquals(CruisePromotionService.combinablePromotions("P1", promotions), output)

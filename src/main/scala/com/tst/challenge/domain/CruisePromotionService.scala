@@ -1,6 +1,5 @@
 package com.tst.challenge.domain
 
-import cats.Eval
 import cats.syntax.foldable._
 import cats.effect.{IO, IOApp}
 import com.tst.challenge.model.{Promotion, PromotionCombo}
@@ -18,7 +17,6 @@ object CruisePromotionService extends IOApp.Simple {
     val codes = allPromotions.map(_.code).toSet
 
     // Build up a lookup of all allowable promotions for each promotion
-    val allAllowable    = allPromotions.map(p => p.code -> ((codes - p.code) -- p.notCombinableWith)).toMap
     val allNonAllowable = allPromotions.map(p => p.code -> p.notCombinableWith).toMap
 
     // Cache previously calculated results in the valid combinations recursion
@@ -48,11 +46,7 @@ object CruisePromotionService extends IOApp.Simple {
         result
       }
 
-    val allCombinations = codes
-      .flatMap { code =>
-        val maximumPossible = allAllowable(code)
-        validCombinations(maximumPossible, Seq(code)).toSeq
-      }
+    val allCombinations = validCombinations(codes, Seq.empty).toSeq
 
     // Filter out any combinations that are a subset of another combination
     val largestCombinations = allCombinations.filter { combination =>
