@@ -33,20 +33,15 @@ object CruisePromotionService extends IOApp.Simple {
       // we have reached the end of the list of promotions and have not found a valid combination
       else if (remaining.isEmpty) Set.empty
       else {
-        val head           = remaining.head
-        val tail           = remaining.tail
-        val nextPromotions = (allAllowable(head) + head) -- current
+        val head = remaining.head
+        val tail = remaining.tail
 
         val notAllowed = current.flatMap(allNonAllowable).toSet
 
-        val result = nextPromotions.flatMap { next =>
-          if (notAllowed.contains(next)) {
-            // Move onto the next element without including the invalid code
-            validCombinations(tail, current)
-          } else {
-            // Move onto the next element and include the valid code in the results
-            validCombinations(tail, next +: current)
-          }
+        val result = if (notAllowed.contains(head)) {
+          validCombinations(tail, current)
+        } else {
+          validCombinations(tail, current :+ head) ++ validCombinations(tail, current)
         }
 
         memoize((remaining, current)) = result
