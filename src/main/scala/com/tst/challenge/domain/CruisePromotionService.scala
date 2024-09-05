@@ -14,46 +14,43 @@ object CruisePromotionService extends IOApp.Simple {
     * - There is enough memory to store all valid combinations
     */
   def allCombinablePromotions(allPromotions: Seq[Promotion]): Seq[PromotionCombo] = {
-    val codes = allPromotions.map(_.code).toSet
-
-    // Build up a lookup of all allowable promotions for each promotion
-    val allNonAllowable = allPromotions.map(p => p.code -> p.notCombinableWith).toMap
-
     // Cache previously calculated results in the valid combinations recursion
-    val memoize = collection.mutable.Map.empty[(Set[String], Seq[String]), Set[Seq[String]]]
+    val memoize = collection.mutable.Map.empty[(Set[String], Set[String]), Set[Set[String]]]
 
     // Recursively build up all valid combinations of promotions for a given code
-    def validCombinations(remaining: Set[String], current: Seq[String]): Set[Seq[String]] =
+    def validCombinations(remaining: Seq[Promotion], current: Set[String], excluded: Set[String]): Set[Set[String]] =
       // return pre-computed results
-      if (memoize.contains((remaining, current))) memoize((remaining, current))
+      if (memoize.contains((current, excluded))) memoize((current, excluded))
       // avoid returning a single promotion code
-      else if (remaining.isEmpty && current.size > 1) Set(current.sorted)
+      else if (remaining.isEmpty && current.size > 1) Set(current)
       // we have reached the end of the list of promotions and have not found a valid combination
       else if (remaining.isEmpty) Set.empty
       else {
         val head = remaining.head
         val tail = remaining.tail
 
-        val notAllowed = current.flatMap(allNonAllowable).toSet
-
-        val result = if (notAllowed.contains(head)) {
-          validCombinations(tail, current)
+        val result = if (excluded.contains(head.code)) {
+          validCombinations(tail, current, excluded)
         } else {
-          validCombinations(tail, current :+ head) ++ validCombinations(tail, current)
+          validCombinations(tail, current + head.code, excluded ++ head.notCombinableWith) ++ validCombinations(
+            tail,
+            current,
+            excluded
+          )
         }
 
-        memoize((remaining, current)) = result
+        memoize((current, excluded)) = result
         result
       }
 
-    val allCombinations = validCombinations(codes, Seq.empty).toSeq
+    val allCombinations = validCombinations(allPromotions, Set.empty, Set.empty).toSeq
 
     // Filter out any combinations that are a subset of another combination
-    val largestCombinations = allCombinations.filter { combination =>
-      !allCombinations.exists(other => other.size > combination.size && combination.toSet.subsetOf(other.toSet))
+    val largestCombinations = allCombinations.filterNot { combination =>
+      allCombinations.exists(other => other.size > combination.size && combination.subsetOf(other))
     }
 
-    largestCombinations.map(PromotionCombo(_)).toSeq
+    largestCombinations.map(promotions => PromotionCombo(promotions.toSeq))
   }
 
   def combinablePromotions(promotionCode: String, allPromotions: Seq[Promotion]): Seq[PromotionCombo] =
