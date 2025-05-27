@@ -8,3 +8,4 @@ libraryDependencies += (toolkitTest % Test)
 
 addCommandAlias("problem1", "runMain com.tst.challenge.domain.CruisePriceService")
 addCommandAlias("problem2", "runMain com.tst.challenge.domain.CruisePromotionService")
+addCommandAlias("problem3", "runMain com.tst.challenge.domain.CabinQueryService")

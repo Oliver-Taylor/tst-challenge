@@ -9,7 +9,7 @@
 
 Implementations can be found in the packages `com.tst.challenge.domain` and models in `com.tst.challenge.model`.
 
-Problem 1 is defined in `CruisePriceService` and Problem 2 in `CruisePromotionService`.
+Problem 1 is defined in `CruisePriceService`, Problem 2 in `CruisePromotionService`, and Problem 3 in `CabinQueryService`.
 
 Assumptions are documented in the methods of the classes.
 
@@ -31,4 +31,7 @@ sbt problem1
 
 # Outputs the result of problem 2 to stdout
 sbt problem2
+
+# Outputs the result of problem 3 to stdout
+sbt problem3
 ```
